@@ -9,7 +9,8 @@
 AGENT_STANDARD_DL_DIR="/var/cache/yocto/downloads"
 AGENT_STANDARD_SSTATE_DIR="/var/cache/yocto/sstate"
 AGENT_STANDARD_SGX_LOCATION="/var/go/sgx_bin"
-AGENT_STANDARD_SGX_GEN3_LOCATION="/var/go/sgx_bin_gen3"
+AGENT_STANDARD_SGX_GEN3_LOCATION="/var/go/rcar-gen3/gfx-mmp_ybsp-390_20180627"
+
 
 # ---- Helper functions ----
 
@@ -62,11 +63,17 @@ stop_immediately() {
   exit 2
 }
 
-# Append a given value to the project's bitbake local.conf file
+# Append a given value to the project's bitbake local.conf file.
+#
+# $1 = A unique text-match that will be used to find if there
+# are any similar lines already and then it will not be added again.  That
+# pattern could be the exact text but for simplicity you'd often just put a
+# word there.
+# $2 = The exact text (make sure to quote it) to be appended to local.conf
 append_local_conf() {
   LOCAL_CONF="$BASEDIR/build/conf/local.conf"
   if [[ -f "$LOCAL_CONF" ]]; then
-    if fgrep -q "$1" ; then
+    if fgrep -q "$1" "$LOCAL_CONF" ; then
       echo "Found variable ($1) in local conf - skipping append"
     else
       echo -n "Appending to local.conf: "
@@ -79,6 +86,25 @@ EOT
     stop_immediately
   fi
 }
+
+# Same principle as described above but for bblayers
+append_bblayers_conf() {
+  BBLAYERS_CONF="$BASEDIR/build/conf/bblayers.conf"
+  if [[ -f "$BBLAYERS_CONF" ]]; then
+    if fgrep -q "$1" "$BBLAYERS_CONF" ; then
+      echo "Found variable ($1) in bblayers.conf - skipping append"
+    else
+      echo -n "Appending to bblayers.conf: "
+    cat <<EOT | tee -a "$BBLAYERS_CONF"
+$2
+EOT
+    fi
+  else
+    echo "Fatal: Did not find bblayers.conf where expected"
+    stop_immediately
+  fi
+}
+
 
 # Copy or move data from the build tree to the staging directory
 # The first argument is either "cp" or "mv".  The (multiple) argumentns
@@ -232,6 +258,15 @@ cleanup() {
   fi
 }
 
+# Fetch URL to file name using either curl or wget, skipping if the file exists.
+fetch() {
+  echo "Downloading external file: $2"
+  if [ ! -f "$1" ] ; then
+    curl "$2" >"$1" || wget "$2" -O "$1"
+  fi
+}
+
+
 # ---- Main program ----
 
 trap cleanup SIGINT SIGTERM
@@ -262,6 +297,11 @@ define_with_default SGX_GEN_3_DRIVERS $AGENT_STANDARD_SGX_GEN3_LOCATION
 define_with_default SOURCE_ARCHIVE false
 define_with_default STANDARD_RELEASE_BUILD false
 
+# This cleverly(?) reuses the r-car unique settings from the GDP project
+# The purpose is to avoid maintaining two files, although to avoid accidental
+# breakage we lock down the commit version here.
+define_with_default GDP_TEMPLATES_URL 'https://raw.githubusercontent.com/GENIVI/genivi-dev-platform/cc28fbfb130548f4cc9bf549844f2d5464a1bfef/gdp-src-build/conf/templates'
+
 # The following only apply to temporary (local) dirs.  If any of
 # REUSE_STANDARD_{DL,SSTATE}_DIR is defined then those directories will be
 # used no matter what. Those reusable DL/SSTATE dirs are never cleared by
@@ -281,6 +321,10 @@ MACHINE="$TARGET" # For most boards - exceptions handled below
 
 if [[ "$TARGET" == "r-car-m3-starter-kit" ]]; then
   MACHINE="m3ulcb"
+fi
+
+if [[ "$TARGET" == "r-car-h3-starter-kit" ]]; then
+  MACHINE="h3ulcb"
 fi
 
 ensure_var_is_defined MACHINE
@@ -450,8 +494,8 @@ fi
 # this format makes it similar to the $MIRROR setup below, which needs to be
 # explicit anyhow.
 
-# We *pre*pend PREMIRROR because we want it to be the first PREMIRROR that
-# is checked, if the user had defined any other in conf files.
+# We *pre*pend PREMIRROR because we want it to be the first mirror that is
+# checked, if the user has defined any other in conf files.
 
 if [[ -n "$PREMIRROR" ]]; then
   append_local_conf PREMIRRORS_prepend "
@@ -466,7 +510,7 @@ fi
 
 # This is the "post" mirror (i.e. checked last).
 # WE *app*pend MIRROR because we want it to be the last mirror that is checked,
-# if the user had defined others in conf files.
+# if the user has defined others in conf files.
 if [[ -n "$MIRROR" ]]; then
   append_local_conf MIRRORS_append "
 MIRRORS_append = \"\\
@@ -478,6 +522,77 @@ MIRRORS_append = \"\\
 "
 fi
 
+# Deal with special setup, copy binary drivers etc.
+
+# All R-Car targets start with "r-car-"
+set +e
+if echo "$TARGET" | egrep -q '^r-car-' ; then
+  if [[ -d "$BASEDIR/meta-renesas" ]] ; then
+    echo "Copying binary graphics and mmp drivers for $TARGET from: $SGX_GEN_3_DRIVERS"
+    cd "$BASEDIR/meta-renesas"
+    meta-rcar-gen3/docs/sample/copyscript/copy_evaproprietary_softwares.sh "$SGX_GEN_3_DRIVERS"
+    append_bblayers_conf meta-renesas 'BBLAYERS += " \
+      ${TOPDIR}/../meta-renesas/meta-rcar-gen3 \
+      ${TOPDIR}/../meta-ivi-renesas \
+      ${TOPDIR}/../meta-linaro/meta-optee \
+      "'
+  else
+    echo "TARGET is set to $TARGET but I did not find a BSP layer (meta-renesas)"
+    exit 2
+  fi
+fi
+set -e
+
+# Adjust local conf if building for Renesas SoC
+# The purpose of this section is to reuse the special settings
+# from GDP.  That way we don't need to maintain two copies of
+# files.  This might be complicating things however... we're
+# trying it for now.
+
+case $TARGET in
+  r-car-m3-starter-kit)
+    target_local_conf_file=r-car-m3-starter-kit.local.conf
+    ;;
+
+  r-car-h3-starter-kit)
+    target_local_conf_file=r-car-h3-starter-kit.local.conf
+    ;;
+
+  r-car-m3-salvator-x)
+    target_local_conf_file=r-car-m3-salvator-x.local.conf
+    ;;
+
+  r-car-h3-salvator-x)
+    target_local_conf_file=r-car-h3-salvator-x.local.conf
+    ;;
+
+  *)
+    target_local_conf_file=
+    ;;
+esac
+
+
+if [ -n "$target_local_conf_file" ] ; then
+  # Download and use hardware-specific local conf settings (reused from the GDP project)
+  cd "$BASEDIR/build/conf"
+  local_conf_url="$GDP_TEMPLATES_URL/$target_local_conf_file"
+  fetch "$target_local_conf_file" "$local_conf_url"
+
+  # We need also the .inc file because it is recursively included
+  # Put this one under /templates
+  # We don't really use templates, just adjusting to what the GDP local conf file requires
+  inc_file="renesas-rcar-gen3.local.inc"
+  inc_url="$GDP_TEMPLATES_URL/$inc_file"
+  mkdir -p templates
+  cd templates
+  fetch "$inc_file" "$inc_url"
+
+  # And include the top level file at the bottom of local.conf
+  append_local_conf .local.conf "require $target_local_conf_file"
+
+  cd "$BASEDIR"
+fi
+
 # These environment variables control conditional compilation
 # of the SDK parts.
 
@@ -486,8 +601,8 @@ if [[ "$BUILD_SDK" != "true" ]]; then
 fi
 
 if [[ "$BUILD_TEST_IMAGE" == "true" ]]; then
-  # FIXME
-  bitbake pulsar-image-test
+  append_bblayers_conf meta-ivi-test 'BBLAYERS += " ##OEROOT##/../meta-ivi/meta-ivi-test"'
+  bitbake test-image
 fi
 
 if [[ "$BUILD_SDK" == "true" ]]; then
@@ -520,8 +635,6 @@ if [[ "$LAYER_ARCHIVE" == "true" ]]; then
   tar cfj staging/meta-layers-snapshot.tar.bz2 meta-* poky renesas* build/conf
 fi
 
-set -e  # Back to strict error checking
-
 # META-IVI note:
 # usually we don't release built (binary) images of baseline -- however to keep
 # the script consistent with GDP version of the script (and make releases
@@ -535,8 +648,8 @@ build_info_file=staging/build_info.txt
 
 # Store environment info into log file for future reference
 env >$build_info_file
-echo 'For conf , see files *.conf, and any diff below' >>$build_info_file
-git diff build/conf/templates/*.inc >>$build_info_file
+echo 'Note the content of conf files and any local diffs reported below:' >>$build_info_file
+git diff -- build/conf/*.conf build/conf/*.inc >>$build_info_file
 
 # Environment variable moving selected parts from staging/ to release/
 if [[ "$CREATE_RELEASE_DIR" == "true" ]]; then
@@ -561,6 +674,6 @@ ls -al staging/ release/
 echo
 echo "...in release/images/ :"
 ls -al release/images/
-set -e
 
 cleanup
+true

@@ -9,23 +9,43 @@ Branch Policy
 -------------
 
 - New development is done on **master** branch and most new change requests
-(PRs) should be proposed as changes to master, unless you know they are
-applicable to a particular release only.
-- Somewhere near a new major release, a numbered release branch (e.g. 14.0)
-is created from master, and the new branch goes into stabilization/release phase.
-- Major numbers are stepped up every new release.  The release schedule is
-driven by a time plan.  Use [semantic versioning](http://semver.org/) for
-minor and patch numbers.
-- GENIVI-specific release tags, such as "M-0.2" for the second baseline
-*pre*release for the "M" platform may also be added.
-- After a versioned release, the release branch remains for maintenance and
-updates.
-- The project maintainer shall ensure that relevant patches are
-cherry-picked to every branch where they apply. I.e. patches should be
-back-ported *at minimum* to the Support Window versions as defined below.
+  (PRs) should be proposed as changes to master, unless you know they are
+  applicable to a particular release only.
 - In general, prefer a linear commit history (rebase and cherry-pick),
   applying merge commits only where absolutely necessary to sort out a
   complex merge situation (which we should rarely have).
+- The maintainer shall ensure that relevant patches are cherry-picked to
+  every branch where they apply. I.e. patches should be back-ported *at
+  minimum* to the Support Window versions, as defined below.
+- Meta-ivi uses [semantic versioning](http://semver.org/). 
+- The release schedule is driven by a time plan.
+- The GENIVI Compliance Specification is released annually, while meta-ivi is
+  released bi-annually.  Major numbers follow the compliance specification.
+  We will create 14.x-rocko branch together with the specification 14.0.0
+  and 14.x-sumo half way to 15.0.0.
+- Meta-ivi updates regularly to follow Yocto/Poky releases.
+- Somewhere near a new major release of the specification, a numbered
+  release branch (e.g. 14.x-rocko and 14.x-sumo) is created from master, and
+  the new branch goes into stabilization/release phase.
+- In the middle between the specification version 14.0 and 15.0 a numbered
+  branch is created for the 14.x-sumo meta-ivi release.
+- After a versioned release, the release branch remains for maintenance and
+  updates.
+
+Tag Policy
+----------
+- Meta-ivi creates tags, in accordance with semver. Major numbers follow
+  the GENIVI Compliance Specification. Examples: 14.0.0, 14.0.1, 14.1.0
+- Releases are created from the respective working branch.
+- GitHub releases are also created.
+- When layer upgrades are done, version numbers will be as follows:
+- The versions used on 14.x-rocko will start at 14.0.0.
+- The versions used on 14.x-sumo will start on 14.50.0 to keep the major version
+  numbers in sync.
+- Note: Updates to the 14.0.0 release would then become 14.0.1 and/or 14.1.0,
+  which can be released __after__ 14.50.0.
+- Tags of the type P-0.1, P-0.2 etc, are internal tags used for some
+  prereleases.
 
 Support Window (Bugfixes, improvements)
 ---------------------------------------
@@ -65,33 +85,33 @@ file for information on contacting the maintainers
 of this layer, as well as instructions for submitting patches.
 
 Subscribe to the mailing list
-    [here](https://lists.genivi.org/mailman/listinfo/genivi-meta-ivi).  
+    [here](https://lists.genivi.org/mailman/listinfo/genivi-meta-ivi).
 [View or Report bugs](https://at.projects.genivi.org/jira/secure/RapidBoard.jspa?rapidView=10&projectKey=BASE).
-Read the [wiki](https://at.projects.genivi.org/wiki/display/PROJ/meta-ivi). 
+Read the [wiki](https://at.projects.genivi.org/wiki/display/PROJ/meta-ivi).
 
 For information about the Yocto Project, see the
-[Yocto Project website](https://www.yoctoproject.org).  
+[Yocto Project website](https://www.yoctoproject.org).
 
 For information about the Yocto GENIVI Baseline, see the
-[Yocto GENIVI Baseline wiki](https://at.projects.genivi.org/wiki/display/PROJ/GENIVI+Baselines). 
+[Yocto GENIVI Baseline wiki](https://at.projects.genivi.org/wiki/display/PROJ/GENIVI+Baselines).
 
 Layer Dependencies
 ------------------
 
 URI: git://git.yoctoproject.org/poky
-> branch:   rocko
-> revision: 6b744113ad3e564d1cb05411816b103d99fd84dc
+> branch:   sumo
+> revision: d240b885f26e9b05c8db0364ab2ace9796709aad
 
 URI: git://git.openembedded.org/meta-openembedded
 > layer:    meta-oe
-> branch:   rocko
-> revision: dacfa2b1920e285531bec55cd2f08743390aaf57
+> branch:   sumo
+> revision: 2bb21ef27c4b0c9d52d30b3b2c5a0160fd02b966
 
 URI: git://git.yoctoproject.org/meta-gplv2
-> branch:   rocko
-> revision: b3092960655f51febbcb2dba78ca6fdd7091098f
+> branch:   sumo
+> revision: d7687d404bbc9ba3f44ec43ea8828d9071033513
 
-Using the above git sha's and the master meta-ivi branch,
+Using the above git SHAs and the master meta-ivi branch,
  bitbaking pulsar-image is known to work
  (the pulsar-image build should be aligned with GENIVI 14.0).
 
@@ -106,14 +126,18 @@ than that is not supported any more, and therefore may not build or run.
 Supported Machines
 ------------------
 
-We do smoke test the builds of the three machines that we currently support:
+We do smoke test the builds of the three supported machines:
 
-* QEMU (ARMv7) - emulated machine: vexpressa9
 * QEMU (IA-32) - emulated machine: qemux86
 * QEMU (x86-64) - emulated machine: qemux86-64
 * QEMU (ARM64) - emulated machine: qemuarm64
+
+Adaptation and testing with other hardware BSPs is typically done by other
+community projects like the GENIVI Development Platform, and by product
+companies.
 
 Please check on our [wiki](https://at.projects.genivi.org/wiki/display/PROJ/meta-ivi)
 regarding any community supported machines.
 For example there Renesas provides a public Board Support Package (BSP)
 available for use with meta-ivi.
+
