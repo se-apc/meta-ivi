@@ -1,3 +1,4 @@
+
 meta-ivi, the Yocto layer for In-Vehicle Infotainment
 =====================================================
 
@@ -99,17 +100,17 @@ Layer Dependencies
 ------------------
 
 URI: git://git.yoctoproject.org/poky
-> branch:   thud
-> revision: 50f33d3bfebcbfb1538d932fb487cfd789872026
+> branch:   warrior
+> revision: 2ce6c7b190fc418a5653085f83016b29d52a2ae5
 
 URI: git://git.openembedded.org/meta-openembedded
 > layer:    meta-oe
-> branch:   thud
-> revision: 4cd3a39f22a2712bfa8fc657d09fe2c7765a4005
+> branch:   warrior
+> revision: a24acf94d48d635eca668ea34598c6e5c857e3f8
 
 URI: git://git.yoctoproject.org/meta-gplv2
-> branch:   thud
-> revision: aabc30f3bd03f97326fb8596910b94639fea7575
+> branch:   warrior
+> revision: d5d9fc9a4bbd365d6cd6fe4d6a8558f7115c17da
 
 Using the above git SHAs and the master meta-ivi branch,
  bitbaking meta-ivi-image is known to work.
