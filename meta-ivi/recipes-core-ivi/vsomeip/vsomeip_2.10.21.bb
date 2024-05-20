@@ -7,14 +7,14 @@ DEPENDS = "boost dlt-daemon"
 FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
 SRCREV = "9fb9beecadf52083599302fa8ddee7efbec64a39"
-SRC_URI = "git://github.com/GENIVI/${BPN}.git;protocol=https \
+SRC_URI = "git://github.com/GENIVI/${BPN}.git;branch=master;protocol=https \
     file://0001-Support-boost-v1.66.patch \
     "
 S = "${WORKDIR}/git"
 
 inherit cmake lib_package gitpkgv
 
-PACKAGES:remove += "${PN}-bin"
+PACKAGES:remove = " ${PN}-bin "
 FILES_${PN} += "${bindir}/vsomeipd ${sysconfdir}/${BPN}"
 FILES_${PN}-dev += "${libdir}/cmake"
 
