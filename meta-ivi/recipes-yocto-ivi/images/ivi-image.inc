@@ -9,10 +9,10 @@ LICENSE = "MIT"
 
 inherit core-image buildhistory
 
-IMAGE_FEATURES += " package-management"
+IMAGE_FEATURES:append = " package-management"
 
 # Create SD image symlink correctly
-IMAGE_POSTPROCESS_COMMAND_imx53qsb += "rename_symlink ; "
+IMAGE_POSTPROCESS_COMMAND:imx53qsb += "rename_symlink ; "
 
 BUILDHISTORY_COMMIT = "1"
 

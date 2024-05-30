@@ -21,20 +21,20 @@ MACHINE_ESSENTIAL_EXTRA_RDEPENDS ?= ""
 MACHINE_ESSENTIAL_EXTRA_RRECOMMENDS ?= ""
 
 # Distro can override the following VIRTUAL-RUNTIME providers:
-VIRTUAL-RUNTIME_dev_manager ?= "udev"
-VIRTUAL-RUNTIME_login_manager ?= "busybox"
-VIRTUAL-RUNTIME_init_manager ?= "systemd"
-VIRTUAL-RUNTIME_initscripts ?= ""
-VIRTUAL-RUNTIME_keymaps ?= "keymaps"
+VIRTUAL-RUNTIME:dev_manager ?= "udev"
+VIRTUAL-RUNTIME:login_manager ?= "busybox"
+VIRTUAL-RUNTIME:init_manager ?= "systemd"
+VIRTUAL-RUNTIME:initscripts ?= ""
+VIRTUAL-RUNTIME:keymaps ?= "keymaps"
 
-RDEPENDS_${PN} = "\
-    ${@bb.utils.contains("MACHINE_FEATURES", "keyboard", "${VIRTUAL-RUNTIME_keymaps}", "", d)} \
+RDEPENDS:${PN} = "\
+    ${@bb.utils.contains("MACHINE_FEATURES", "keyboard", "${VIRTUAL-RUNTIME:keymaps}", "", d)} \
     ${MACHINE_ESSENTIAL_EXTRA_RDEPENDS} \
-    ${VIRTUAL-RUNTIME_dev_manager} \
-    ${VIRTUAL-RUNTIME_init_manager} \
-    ${VIRTUAL-RUNTIME_initscripts} \
-    ${VIRTUAL-RUNTIME_login_manager} \
-    ${VIRTUAL-RUNTIME_update-alternatives} \
+    ${VIRTUAL-RUNTIME:dev_manager} \
+    ${VIRTUAL-RUNTIME:init_manager} \
+    ${VIRTUAL-RUNTIME:initscripts} \
+    ${VIRTUAL-RUNTIME:login_manager} \
+    ${VIRTUAL-RUNTIME:update-alternatives} \
     base-files \
     base-passwd \
     busybox \
@@ -44,6 +44,6 @@ RDEPENDS_${PN} = "\
     util-linux-mount \
 "
 
-RRECOMMENDS_${PN} = "\
+RRECOMMENDS:${PN} = "\
     ${MACHINE_ESSENTIAL_EXTRA_RRECOMMENDS} \
 "

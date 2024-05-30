@@ -15,8 +15,8 @@ S = "${WORKDIR}/git"
 inherit cmake lib_package gitpkgv
 
 PACKAGES:remove = " ${PN}-bin "
-FILES_${PN} += "${bindir}/vsomeipd ${sysconfdir}/${BPN}"
-FILES_${PN}-dev += "${libdir}/cmake"
+FILES:${PN} += "${bindir}/vsomeipd ${sysconfdir}/${BPN}"
+FILES:${PN}-dev += "${libdir}/cmake"
 
 BBCLASSEXTEND = "nativesdk"
 

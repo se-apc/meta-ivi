@@ -7,9 +7,9 @@ PACKAGES = "\
     packagegroup-specific-component-p1 \
 "
 
-ALLOW_EMPTY_${PN} = "1"
+ALLOW_EMPTY:${PN} = "1"
 
-RDEPENDS_${PN} += "\
+RDEPENDS:${PN} += "\
     alsa-utils \
     audiomanager \
     common-api-c++ \

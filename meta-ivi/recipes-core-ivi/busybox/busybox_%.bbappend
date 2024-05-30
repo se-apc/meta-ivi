@@ -5,4 +5,4 @@ SRC_URI += "file://remove-syslog.cfg"
 # Adapt if needed in the future
 SYSTEMD_PACKAGES:remove = "${PN}-syslog"
 INITSCRIPT_PACKAGES:remove = "${PN}-syslog"
-ALTERNATIVE_${PN}-syslog:remove = "syslog-conf"
+ALTERNATIVE:${PN}-syslog:remove = "syslog-conf"

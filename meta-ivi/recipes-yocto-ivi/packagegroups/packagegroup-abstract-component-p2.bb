@@ -8,9 +8,9 @@ PACKAGES = "\
     packagegroup-abstract-component-p2 \
 "
 
-ALLOW_EMPTY_${PN} = "1"
+ALLOW_EMPTY:${PN} = "1"
 
-RDEPENDS_${PN} += "\
+RDEPENDS:${PN} += "\
     audiomanagerplugins \
     neard \
     node-health-monitor \

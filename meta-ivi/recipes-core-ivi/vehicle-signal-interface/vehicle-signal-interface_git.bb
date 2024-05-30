@@ -17,10 +17,10 @@ inherit cmake
 
 # Python interface is enabled by default
 # but is unlikely needed by most users
-EXTRA_OECMAKE += "-DBUILD_PYTHON=OFF"
+EXTRA_OECMAKE:append = " -DBUILD_PYTHON=OFF"
 
 SOLIBS = ".so"
-FILES_SOLIBSDEV = ""
+FILES:SOLIBSDEV = ""
 
 do_install:append() {
     install -d ${D}${includedir}
@@ -30,6 +30,6 @@ do_install:append() {
     install -m 0644 ${S}/src/vsi_core_api.h ${D}${includedir}
 }
 
-PACKAGE_${PN}-dev = "\
+PACKAGE:${PN}-dev = "\
     ${includedir} \
 "
