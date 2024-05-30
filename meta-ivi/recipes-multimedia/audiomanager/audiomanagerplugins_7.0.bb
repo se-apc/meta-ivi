@@ -27,7 +27,7 @@ FILES_${PN} += " \
     /usr/share/* \
     "
 
-do_install:append() {
+do_install_append() {
     mv ${D}${libdir}/audiomanager/* ${D}${libdir}
     rmdir ${D}${libdir}/audiomanager
 }
